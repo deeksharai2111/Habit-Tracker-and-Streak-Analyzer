@@ -1,25 +1,14 @@
-# Use OpenJDK 17 as base image
-FROM openjdk:17-jdk-slim
-
-# Set working directory
+# Build stage
+FROM maven:3.8.5-openjdk-17 AS build
 WORKDIR /app
-
-# Copy the Maven wrapper and pom.xml
-COPY mvnw .
-COPY .mvn .mvn
 COPY pom.xml .
-
-# Make mvnw executable
-RUN chmod +x mvnw
-
-# Download dependencies
-RUN ./mvnw dependency:go-offline -B
-
-# Copy source code
 COPY src src
+RUN mvn clean package -DskipTests
 
-# Build the application
-RUN ./mvnw clean package -DskipTests
+# Run stage
+FROM openjdk:17-jdk-slim
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
 
 # Create a non-root user
 RUN addgroup --system javauser && adduser --system --ingroup javauser javauser
@@ -38,4 +27,4 @@ ENV SPRING_PROFILES_ACTIVE=prod
 ENV JAVA_OPTS="-Xmx512m -Xms256m"
 
 # Run the application
-CMD ["java", "-jar", "target/habit-tracker-0.0.1-SNAPSHOT.jar"] 
+CMD ["java", "-jar", "app.jar"] 
