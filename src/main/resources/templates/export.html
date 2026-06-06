@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Export Data - Daily Habit Tracker</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" th:href="@{/dashboard}">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                Habit Tracker
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/dashboard}">
+                            <i class="bi bi-house-door me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/habits/new}">
+                            <i class="bi bi-plus-circle me-1"></i>New Habit
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/analytics}">
+                            <i class="bi bi-graph-up me-1"></i>Analytics
+                        </a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle me-1"></i>
+                            <span sec:authentication="name">User</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <form th:action="@{/logout}" method="post" class="d-inline">
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="bi bi-box-arrow-right me-1"></i>Logout
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container my-4">
+        <!-- Flash Messages -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Page Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="h2 mb-1"><i class="bi bi-download me-2"></i>Export Data</h1>
+                        <p class="text-muted mb-0">Export your habit tracking data in various formats</p>
+                    </div>
+                    <a th:href="@{/analytics}" class="btn btn-outline-primary">
+                        <i class="bi bi-arrow-left me-1"></i>Back to Analytics
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Export Options -->
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-file-earmark-text me-2"></i>Export Options
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- JSON Export -->
+                            <div class="col-md-6 mb-4">
+                                <div class="export-option p-4 border rounded h-100">
+                                    <div class="text-center mb-3">
+                                        <i class="bi bi-filetype-json display-4 text-primary"></i>
+                                    </div>
+                                    <h5 class="text-center mb-3">JSON Export</h5>
+                                    <p class="text-muted text-center mb-3">Export all your data in JSON format for backup or integration with other applications.</p>
+                                    <div class="d-grid">
+                                        <button class="btn btn-primary" onclick="exportData('json')">
+                                            <i class="bi bi-download me-2"></i>Export JSON
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- CSV Export -->
+                            <div class="col-md-6 mb-4">
+                                <div class="export-option p-4 border rounded h-100">
+                                    <div class="text-center mb-3">
+                                        <i class="bi bi-file-earmark-spreadsheet display-4 text-success"></i>
+                                    </div>
+                                    <h5 class="text-center mb-3">CSV Export</h5>
+                                    <p class="text-muted text-center mb-3">Export your habits and check-ins in CSV format for analysis in Excel or Google Sheets.</p>
+                                    <div class="d-grid">
+                                        <button class="btn btn-success" onclick="exportData('csv')">
+                                            <i class="bi bi-download me-2"></i>Export CSV
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- PDF Report -->
+                            <div class="col-md-6 mb-4">
+                                <div class="export-option p-4 border rounded h-100">
+                                    <div class="text-center mb-3">
+                                        <i class="bi bi-file-earmark-pdf display-4 text-danger"></i>
+                                    </div>
+                                    <h5 class="text-center mb-3">PDF Report</h5>
+                                    <p class="text-muted text-center mb-3">Generate a comprehensive PDF report with charts and analytics.</p>
+                                    <div class="d-grid">
+                                        <button class="btn btn-danger" onclick="exportData('pdf')">
+                                            <i class="bi bi-download me-2"></i>Export PDF
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Excel Export -->
+                            <div class="col-md-6 mb-4">
+                                <div class="export-option p-4 border rounded h-100">
+                                    <div class="text-center mb-3">
+                                        <i class="bi bi-file-earmark-excel display-4 text-success"></i>
+                                    </div>
+                                    <h5 class="text-center mb-3">Excel Export</h5>
+                                    <p class="text-muted text-center mb-3">Export detailed data in Excel format with multiple sheets and formatting.</p>
+                                    <div class="d-grid">
+                                        <button class="btn btn-success" onclick="exportData('excel')">
+                                            <i class="bi bi-download me-2"></i>Export Excel
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export Information -->
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-info-circle me-2"></i>Export Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info border-0">
+                            <h6 class="alert-heading"><i class="bi bi-lightbulb me-2"></i>What's Included</h6>
+                            <ul class="mb-0 small">
+                                <li>All your habits and their details</li>
+                                <li>Check-in history and streaks</li>
+                                <li>Analytics and performance data</li>
+                                <li>User profile information</li>
+                            </ul>
+                        </div>
+
+                        <div class="alert alert-warning border-0">
+                            <h6 class="alert-heading"><i class="bi bi-shield-check me-2"></i>Data Privacy</h6>
+                            <p class="mb-0 small">Your data is exported securely and only includes your personal information. No data is shared with third parties.</p>
+                        </div>
+
+                        <div class="alert alert-success border-0">
+                            <h6 class="alert-heading"><i class="bi bi-clock me-2"></i>Export History</h6>
+                            <p class="mb-0 small">Your last export was on <span th:text="${#temporals.format(#temporals.createNow(), 'MMM dd, yyyy')}">Today</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Export Progress -->
+        <div id="exportProgress" class="row mt-4" style="display: none;">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <h5>Preparing your export...</h5>
+                        <p class="text-muted">This may take a few moments depending on the amount of data.</p>
+                        <div class="progress">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Export Scripts -->
+    <script>
+        function exportData(format) {
+            // Show progress
+            document.getElementById('exportProgress').style.display = 'block';
+            
+            // Simulate progress
+            const progressBar = document.querySelector('.progress-bar');
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 10;
+                progressBar.style.width = progress + '%';
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    // Hide progress and show success
+                    setTimeout(() => {
+                        document.getElementById('exportProgress').style.display = 'none';
+                        showSuccessMessage(format);
+                    }, 500);
+                }
+            }, 200);
+
+            // Make API call to export data
+            fetch(`/api/v1/export/download?format=${format}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.blob();
+                }
+                throw new Error('Export failed');
+            })
+            .then(blob => {
+                // Create download link
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `habit-tracker-export-${new Date().toISOString().split('T')[0]}.${format}`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            })
+            .catch(error => {
+                console.error('Export error:', error);
+                showErrorMessage('Export failed. Please try again.');
+            });
+        }
+
+        function showSuccessMessage(format) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-success alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <span>${format.toUpperCase()} export completed successfully!</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.querySelector('main').insertBefore(alertDiv, document.querySelector('main').firstChild);
+        }
+
+        function showErrorMessage(message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <span>${message}</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.querySelector('main').insertBefore(alertDiv, document.querySelector('main').firstChild);
+        }
+    </script>
+</body>
+</html> 
